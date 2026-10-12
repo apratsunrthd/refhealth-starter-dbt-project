@@ -1,5 +1,5 @@
 name: 'refhealth_starter_dbt_project'
-version: '1.1.0'
+version: '1.2.0'
 config-version: 2
 
 profile: 'refhealth_starter'
@@ -58,10 +58,22 @@ seeds:
         service_month: date
         earned_premium_amount: double
         enrolled_member_months: integer
+    raw_fhir_encounters:
+      +column_types:
+        encounter_id: varchar
+        status: varchar
+        class_code: varchar
+        type_code: varchar
+        period_start: timestamp
+        period_end: timestamp
+        service_provider_npi: varchar
+        subject_member_id: varchar
 
 models:
   refhealth_starter_dbt_project:
     staging:
+      +materialized: view
+    intermediate:
       +materialized: view
     marts:
       +materialized: table

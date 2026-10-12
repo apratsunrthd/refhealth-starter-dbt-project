@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: int_encounter_claims_crosswalk
+    description: "Intermediate crosswalk linking clinical FHIR encounters to adjudicated billing claims, bridging clinical activity and revenue realization."
+    columns:
+      - name: crosswalk_surrogate_id
+        description: "Surrogate primary key for the crosswalk at the (encounter_id, claim_line_surrogate_id) grain."
+        tests:
+          - unique
+          - not_null
+      - name: encounter_id
+        description: "Foreign key to clinical FHIR encounter."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_fhir_encounters')
+              field: encounter_id
+      - name: member_id
+        description: "Foreign key to the patient/member."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_members')
+              field: member_id
+      - name: encounter_date
+        description: "Calendar date of the clinical service."
+        tests:
+          - not_null
+      - name: is_billed_claim
+        description: "Boolean indicating whether an adjudicated or submitted claim exists for this encounter."
+        tests:
+          - not_null
+      - name: is_procedure_matched
+        description: "Boolean indicating whether the primary encounter procedure matches the billed claim line procedure."
+        tests:
+          - not_null
+    tests:
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - encounter_id
+            - "coalesce(claim_line_surrogate_id, 'UNBILLED')"

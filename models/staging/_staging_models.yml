@@ -116,3 +116,52 @@ models:
             - plan_id
             - service_month
 
+  - name: stg_fhir_encounters
+    description: "Staging model standardizing FHIR Encounter resources from clinical EHR data feeds."
+    columns:
+      - name: encounter_surrogate_id
+        description: "Surrogate key generated at the encounter_id grain."
+        tests:
+          - unique
+          - not_null
+      - name: encounter_id
+        description: "Primary FHIR encounter resource identifier."
+        tests:
+          - unique
+          - not_null
+      - name: status
+        description: "Normalized FHIR encounter status code."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['finished', 'in-progress', 'planned', 'triaged']
+      - name: class_code
+        description: "ActEncounterCode classification (AMB, IMP, EMER, VR)."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['AMB', 'IMP', 'EMER', 'VR', 'HH']
+      - name: type_code
+        description: "Service or procedure code associated with the encounter."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.hcpcs_cpt_code_validity
+      - name: encounter_date
+        description: "Calendar date derived from period_start."
+        tests:
+          - not_null
+      - name: service_provider_npi
+        description: "10-digit NPI of the servicing organization or provider."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.cms_npi_format
+      - name: subject_member_id
+        description: "Foreign key reference to patient/member."
+        tests:
+          - not_null
+    tests:
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - encounter_id
+
+
