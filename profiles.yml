@@ -1,0 +1,7 @@
+refhealth_starter:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'refhealth_dev.duckdb'
+      threads: 4

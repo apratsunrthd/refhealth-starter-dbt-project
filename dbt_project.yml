@@ -1,0 +1,61 @@
+name: 'refhealth_starter_dbt_project'
+version: '1.0.0'
+config-version: 2
+
+profile: 'refhealth_starter'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+seeds:
+  refhealth_starter_dbt_project:
+    +schema: raw
+    raw_members:
+      +column_types:
+        member_id: varchar
+        first_name: varchar
+        last_name: varchar
+        date_of_birth: date
+        gender: varchar
+        coverage_effective_date: date
+        coverage_term_date: date
+        enrollment_date: date
+        updated_date: date
+        plan_id: varchar
+    raw_providers:
+      +column_types:
+        npi: varchar
+        provider_name: varchar
+        taxonomy_code: varchar
+        provider_type: varchar
+    raw_claims:
+      +column_types:
+        claim_id: varchar
+        claim_line_number: integer
+        member_id: varchar
+        date_of_service: date
+        billing_npi: varchar
+        rendering_npi: varchar
+        primary_diagnosis_code: varchar
+        procedure_code: varchar
+        charge_amount: double
+        paid_amount: double
+        patient_due_amount: double
+        paid_date: date
+        created_at: timestamp
+        claim_status: varchar
+
+models:
+  refhealth_starter_dbt_project:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

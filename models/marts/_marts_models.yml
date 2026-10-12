@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: dim_members
+    description: "Dimensional model of members including coverage active flags and sanitized demographics."
+    columns:
+      - name: member_id
+        description: "Primary key for member dimension."
+        tests:
+          - unique
+          - not_null
+      - name: coverage_effective_date
+        description: "Coverage start date."
+        tests:
+          - not_null
+      - name: is_currently_enrolled
+        description: "Boolean indicating active coverage status based on current date."
+        tests:
+          - not_null
+
+  - name: dim_providers
+    description: "Dimensional model of healthcare providers and rendering facilities."
+    columns:
+      - name: npi
+        description: "Primary key 10-digit National Provider Identifier (NPI)."
+        tests:
+          - unique
+          - not_null
+          - refhealth_dbt_healthcare_checks.cms_npi_format
+
+  - name: fct_claims
+    description: "Fact model of adjudicated claims line items enriched with member coverage and billing provider dimensions."
+    columns:
+      - name: claim_line_surrogate_id
+        description: "Surrogate key uniquely identifying each claim line."
+        tests:
+          - unique
+          - not_null
+      - name: claim_id
+        description: "Parent claim transaction ID."
+        tests:
+          - not_null
+      - name: member_id
+        description: "Member foreign key."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_members')
+              field: member_id
+      - name: billing_npi
+        description: "Billing provider NPI."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_providers')
+              field: npi
+      - name: paid_amount
+        description: "Adjudicated dollar amount paid by the plan."
+        tests:
+          - not_null
+      - name: adjudication_lag_days
+        description: "Days between encounter date of service and final claim payment date."
+        tests:
+          - not_null
+    tests:
+      - refhealth_dbt_healthcare_checks.claim_member_referential_integrity:
+          member_model: ref('dim_members')
+          claim_member_id: member_id
+          service_date: date_of_service
+          effective_date: coverage_effective_date
+          end_date: coverage_term_date
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - claim_id
+            - claim_line_number

@@ -1,0 +1,9 @@
+npi,provider_name,taxonomy_code,provider_type
+1234567890,Metro Health Systems,282N00000X,General Acute Care Hospital
+1987654321,Dr. Marcus Vance,207Q00000X,Family Medicine Physician
+2109876543,Valley Cardiology Clinic,261QM2500X,Medical Specialty Clinic
+1456789012,Dr. Elena Rostova,207R00000X,Internal Medicine Physician
+2345678901,Summit Urgent Care,261QU0200X,Urgent Care Clinic
+1567890123,Dr. Arthur Pendelton,208000000X,Pediatrics Physician
+2456789012,Northside Diagnostic Imaging,261QR0200X,Radiology Clinic
+1678901234,Dr. Gregory House,2084N0400X,Neurology Physician

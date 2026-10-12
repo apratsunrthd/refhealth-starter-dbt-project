@@ -1,0 +1,5 @@
+packages:
+  - git: "https://github.com/apratsunrthd/refhealth-dbt-healthcare-checks.git"
+    revision: "v1.0.3"
+  - package: dbt-labs/dbt_utils
+    version: [">=1.1.0", "<2.0.0"]

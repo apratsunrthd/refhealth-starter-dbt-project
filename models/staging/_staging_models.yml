@@ -1,0 +1,87 @@
+version: 2
+
+models:
+  - name: stg_members
+    description: "Staging model standardizing member eligibility rosters, demographics, and coverage dates."
+    columns:
+      - name: member_id
+        description: "Primary identifier for member eligibility."
+        tests:
+          - unique
+          - not_null
+      - name: coverage_effective_date
+        description: "Inception date of health coverage."
+        tests:
+          - not_null
+    tests:
+      - refhealth_dbt_healthcare_checks.bitemporal_enrollment_consistency:
+          effective_date: coverage_effective_date
+          end_date: coverage_term_date
+          enrollment_date: enrollment_date
+          updated_date: updated_date
+
+  - name: stg_providers
+    description: "Staging model standardizing provider directory records."
+    columns:
+      - name: npi
+        description: "10-digit National Provider Identifier (NPI)."
+        tests:
+          - unique
+          - not_null
+          - refhealth_dbt_healthcare_checks.cms_npi_format
+
+  - name: stg_claims
+    description: "Staging model standardizing professional and facility claims line items."
+    columns:
+      - name: claim_line_surrogate_id
+        description: "Surrogate key generated at the (claim_id, claim_line_number) grain."
+        tests:
+          - unique
+          - not_null
+      - name: claim_id
+        description: "Claim identifier from upstream EDI 837/clearinghouse feed."
+        tests:
+          - not_null
+      - name: claim_line_number
+        description: "Sub-line index within the parent claim."
+        tests:
+          - not_null
+      - name: member_id
+        description: "Foreign key to the patient/member."
+        tests:
+          - not_null
+      - name: date_of_service
+        description: "Encounter date of service."
+        tests:
+          - not_null
+      - name: billing_npi
+        description: "NPI of billing provider/organization."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.cms_npi_format
+      - name: rendering_npi
+        description: "NPI of rendering clinician."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.cms_npi_format
+      - name: primary_diagnosis_code
+        description: "ICD-10-CM primary diagnosis code."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.icd10_code_validity
+      - name: procedure_code
+        description: "HCPCS/CPT procedure code."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.hcpcs_cpt_code_validity
+      - name: created_at
+        description: "Pipeline creation timestamp."
+        tests:
+          - not_null
+          - refhealth_dbt_healthcare_checks.midnight_default_timestamp:
+              max_midnight_ratio: 0.20
+    tests:
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - claim_id
+            - claim_line_number
