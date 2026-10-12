@@ -22,10 +22,11 @@ uv run --with dbt-duckdb dbt clean
 - `dbt_project.yml` - Root project configuration, paths, and seed column type overrides.
 - `packages.yml` - Package dependencies: `refhealth-dbt-healthcare-checks` (v1.0.3) and `dbt-labs/dbt_utils`.
 - `profiles.yml` / `profiles.yml.example` - DuckDB profile configured for zero-setup local execution (`refhealth_dev.duckdb`).
-- `seeds/` - Zero-PHI synthetic CSV datasets (`raw_members.csv`, `raw_providers.csv`, `raw_claims.csv`, `raw_plan_premiums.csv`).
-- `models/staging/` - Staging views cleaning types, creating surrogate keys, and running staging tests (`stg_members`, `stg_providers`, `stg_claims`, `stg_plan_premiums`, `_staging_models.yml`).
+- `seeds/` - Zero-PHI synthetic CSV datasets (`raw_members.csv`, `raw_providers.csv`, `raw_claims.csv`, `raw_plan_premiums.csv`, `raw_fhir_encounters.csv`).
+- `models/staging/` - Staging views cleaning types, creating surrogate keys, and running staging tests (`stg_members`, `stg_providers`, `stg_claims`, `stg_plan_premiums`, `stg_fhir_encounters`, `_staging_models.yml`).
+- `models/intermediate/` - Intermediate domain crosswalks (`int_encounter_claims_crosswalk.sql`, `_intermediate_models.yml`).
 - `models/marts/` - Dimensional, fact, and actuarial metric tables (`dim_members`, `dim_providers`, `fct_claims`, `fct_plan_monthly_metrics`, `_marts_models.yml`).
-- `.github/workflows/ci.yml` - GitHub Actions CI executing `dbt build` against DuckDB (78/78 passing tests).
+- `.github/workflows/ci.yml` - GitHub Actions CI executing `dbt build` against DuckDB (106/106 passing tests).
 
 ### Conventions & Gotchas
 

@@ -22,6 +22,7 @@ flowchart TD
         P[raw_providers.csv]
         C[raw_claims.csv]
         PR[raw_plan_premiums.csv]
+        FE[raw_fhir_encounters.csv]
     end
 
     subgraph Staging["Staging Layer (Views)"]
@@ -29,6 +30,11 @@ flowchart TD
         SP[stg_providers]
         SC[stg_claims]
         SPR[stg_plan_premiums]
+        SFE[stg_fhir_encounters]
+    end
+
+    subgraph Intermediate["Intermediate Layer (Views)"]
+        IECX[int_encounter_claims_crosswalk]
     end
 
     subgraph Marts["Marts Layer (Tables)"]
@@ -53,6 +59,8 @@ flowchart TD
     P --> SP --> DP
     C --> SC --> FC
     PR --> SPR --> FPM
+    FE --> SFE --> IECX
+    SC --> IECX
     DM --> FC
     DP --> FC
     FC --> FPM
@@ -61,6 +69,8 @@ flowchart TD
     SP -.-> T3
     SC -.-> T1 & T3 & T4 & T5 & T6
     SPR -.-> T1
+    SFE -.-> T1 & T3 & T5
+    IECX -.-> T1
     FC -.-> T1 & T7
     FPM -.-> T1 & T8
 ```
