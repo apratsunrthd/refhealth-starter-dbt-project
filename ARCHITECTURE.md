@@ -21,18 +21,21 @@ flowchart TD
         M[raw_members.csv]
         P[raw_providers.csv]
         C[raw_claims.csv]
+        PR[raw_plan_premiums.csv]
     end
 
     subgraph Staging["Staging Layer (Views)"]
         SM[stg_members]
         SP[stg_providers]
         SC[stg_claims]
+        SPR[stg_plan_premiums]
     end
 
     subgraph Marts["Marts Layer (Tables)"]
         DM[dim_members]
         DP[dim_providers]
         FC[fct_claims]
+        FPM[fct_plan_monthly_metrics]
     end
 
     subgraph Tests["Automated Assertion Layer"]
@@ -43,18 +46,23 @@ flowchart TD
         T5["hcpcs_cpt_code_validity"]
         T6["midnight_default_timestamp"]
         T7["claim_member_referential_integrity"]
+        T8["accepted_range (MLR/Lag)"]
     end
 
     M --> SM --> DM
     P --> SP --> DP
     C --> SC --> FC
+    PR --> SPR --> FPM
     DM --> FC
     DP --> FC
+    FC --> FPM
 
     SM -.-> T2
     SP -.-> T3
     SC -.-> T1 & T3 & T4 & T5 & T6
+    SPR -.-> T1
     FC -.-> T1 & T7
+    FPM -.-> T1 & T8
 ```
 
 ## Key Technical Decisions

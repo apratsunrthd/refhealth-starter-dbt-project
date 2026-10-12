@@ -1,5 +1,5 @@
 name: 'refhealth_starter_dbt_project'
-version: '1.0.0'
+version: '1.1.0'
 config-version: 2
 
 profile: 'refhealth_starter'
@@ -52,6 +52,12 @@ seeds:
         paid_date: date
         created_at: timestamp
         claim_status: varchar
+    raw_plan_premiums:
+      +column_types:
+        plan_id: varchar
+        service_month: date
+        earned_premium_amount: double
+        enrolled_member_months: integer
 
 models:
   refhealth_starter_dbt_project:

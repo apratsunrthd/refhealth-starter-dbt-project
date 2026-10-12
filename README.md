@@ -51,7 +51,7 @@ dbt deps
 dbt build --profiles-dir .
 ```
 
-You will see seeds loaded, staging views materialized, dimensional and fact tables created, and **51/51 automated healthcare data tests pass**.
+You will see seeds loaded, staging views materialized, dimensional and fact tables created, and **78/78 automated healthcare data tests pass**.
 
 ---
 
@@ -63,25 +63,30 @@ flowchart LR
         S1["raw_members.csv<br/>(EDI 834 Eligibility)"]
         S2["raw_providers.csv<br/>(NPPES Registry)"]
         S3["raw_claims.csv<br/>(EDI 837/835 Claims)"]
+        S4["raw_plan_premiums.csv<br/>(Earned Premium Ledger)"]
     end
 
     subgraph Staging["2. Staging Layer (Views)"]
         STG1["stg_members<br/>• Bitemporal check<br/>• Effective span"]
         STG2["stg_providers<br/>• CMS NPI format<br/>• Taxonomy"]
         STG3["stg_claims<br/>• Surrogate grain key<br/>• ICD-10 & CPT tests<br/>• Midnight drop audit"]
+        STG4["stg_plan_premiums<br/>• Plan-month grain<br/>• Member months"]
     end
 
-    subgraph Marts["3. Dimensional Marts (Tables)"]
+    subgraph Marts["3. Dimensional & Metric Marts (Tables)"]
         D1["dim_members<br/>• Active coverage flag<br/>• Demographics"]
         D2["dim_providers<br/>• Facility & clinician"]
         F1["fct_claims<br/>• Adjudication lag (days)<br/>• Allowed amount<br/>• Referential integrity"]
+        F2["fct_plan_monthly_metrics<br/>• Medical Loss Ratio (MLR)<br/>• Allowed & Paid PMPM<br/>• Cost-share ratio<br/>• Median & P90 lag"]
     end
 
     S1 --> STG1 --> D1
     S2 --> STG2 --> D2
     S3 --> STG3 --> F1
+    S4 --> STG4 --> F2
     D1 --> F1
     D2 --> F1
+    F1 --> F2
 ```
 
 ---
@@ -92,27 +97,30 @@ flowchart LR
 - [`stg_members.sql`](models/staging/stg_members.sql): Normalizes member eligibility dates (`coverage_effective_date`, `coverage_term_date`, `enrollment_date`, `updated_date`).
 - [`stg_providers.sql`](models/staging/stg_providers.sql): Cleans National Provider Identifiers (NPI) and taxonomy designations.
 - [`stg_claims.sql`](models/staging/stg_claims.sql): Constructs deterministic composite surrogate key `claim_line_surrogate_id` at `(claim_id, claim_line_number)` grain using `dbt_utils.generate_surrogate_key`.
+- [`stg_plan_premiums.sql`](models/staging/stg_plan_premiums.sql): Normalizes earned premium revenues and enrolled member months at `(plan_id, service_month)` grain.
 
 ### Marts Layer (`models/marts/`)
 - [`dim_members.sql`](models/marts/dim_members.sql): Member dimension calculating current active enrollment status based on bitemporal date spans.
 - [`dim_providers.sql`](models/marts/dim_providers.sql): Provider dimension containing rendering clinician and billing organization attributes.
 - [`fct_claims.sql`](models/marts/fct_claims.sql): Adjudicated claims fact table joining member and provider dimensions, computing adjudication turnaround lag (`paid_date - date_of_service`) and total allowed amounts.
+- [`fct_plan_monthly_metrics.sql`](models/marts/fct_plan_monthly_metrics.sql): Monthly actuarial and financial mart computing statutory Medical Loss Ratio (MLR), Allowed PMPM, Net Paid PMPM, Member Cost-Share Ratio, and Median/P90 claims adjudication turnaround lag.
 
 ---
 
 ## Automated Healthcare Integrity Tests
 
-This project integrates [`refhealth-dbt-healthcare-checks`](https://github.com/apratsunrthd/refhealth-dbt-healthcare-checks) to enforce domain assertions:
+This project integrates [`refhealth-dbt-healthcare-checks`](https://github.com/apratsunrthd/refhealth-dbt-healthcare-checks) and `dbt_utils` to enforce domain assertions:
 
 | Test Macro | Location | Operational Risk Prevented |
 | :--- | :--- | :--- |
-| `surrogate_key_grain` | `stg_claims`, `fct_claims` | Catches missing sub-line grains before claim row multiplication corrupts MLR. |
+| `surrogate_key_grain` | `stg_claims`, `fct_claims`, `stg_plan_premiums`, `fct_plan_monthly_metrics` | Catches missing sub-line grains before claim row multiplication corrupts MLR. |
 | `bitemporal_enrollment_consistency` | `stg_members` | Detects effective dates after termination dates or enrollment dates after update dates. |
 | `cms_npi_format` | `stg_providers`, `stg_claims` | Flags invalid NPI lengths, non-numeric characters, or invalid prefix digits (must start with 1 or 2). |
 | `icd10_code_validity` | `stg_claims` | Validates ICD-10-CM alphanumeric format (formatted or unformatted). |
 | `hcpcs_cpt_code_validity` | `stg_claims` | Enforces CPT Category I/II/III and HCPCS Level II code syntax. |
 | `midnight_default_timestamp` | `stg_claims` | Detects source feeds dropping timestamp precision and defaulting to `00:00:00`. |
 | `claim_member_referential_integrity` | `fct_claims` | Asserts that every claim's date of service falls within the member's active coverage span. |
+| `accepted_range` | `fct_plan_monthly_metrics` | Validates statutory MLR bounds (0.50 to 1.50), cost-share ratio (0.0 to 1.0), and non-negative adjudication lag (>= 0 days). |
 
 ---
 

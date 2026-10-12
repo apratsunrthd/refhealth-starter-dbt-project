@@ -85,3 +85,34 @@ models:
           grain_columns:
             - claim_id
             - claim_line_number
+
+  - name: stg_plan_premiums
+    description: "Staging model standardizing monthly plan premium revenue and enrolled member month counts."
+    columns:
+      - name: plan_month_surrogate_id
+        description: "Surrogate key generated at the (plan_id, service_month) grain."
+        tests:
+          - unique
+          - not_null
+      - name: plan_id
+        description: "Healthcare plan identifier."
+        tests:
+          - not_null
+      - name: service_month
+        description: "First day of the accounting/service month."
+        tests:
+          - not_null
+      - name: earned_premium_amount
+        description: "Total earned premium dollar amount for the plan and month."
+        tests:
+          - not_null
+      - name: enrolled_member_months
+        description: "Total enrolled member months for the plan in this period."
+        tests:
+          - not_null
+    tests:
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - plan_id
+            - service_month
+

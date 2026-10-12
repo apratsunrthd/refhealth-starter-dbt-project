@@ -73,3 +73,68 @@ models:
           grain_columns:
             - claim_id
             - claim_line_number
+
+  - name: fct_plan_monthly_metrics
+    description: "Monthly plan-level actuarial and financial metrics mart including Medical Loss Ratio (MLR), Allowed PMPM, Net Paid PMPM, Member Cost-Share Ratio, and Adjudication Lag."
+    columns:
+      - name: plan_month_surrogate_id
+        description: "Surrogate key generated at the (plan_id, service_month) grain."
+        tests:
+          - unique
+          - not_null
+      - name: plan_id
+        description: "Healthcare plan identifier."
+        tests:
+          - not_null
+      - name: service_month
+        description: "First day of the accounting/service month."
+        tests:
+          - not_null
+      - name: earned_premium_amount
+        description: "Total earned premium dollar amount for the plan and month."
+        tests:
+          - not_null
+      - name: enrolled_member_months
+        description: "Total enrolled member months for the plan in this period."
+        tests:
+          - not_null
+      - name: medical_loss_ratio
+        description: "Medical Loss Ratio (total paid claims / earned premium revenue)."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0.50
+              max_value: 1.50
+      - name: allowed_pmpm
+        description: "Allowed cost Per Member Per Month (total allowed claims / enrolled member months)."
+        tests:
+          - not_null
+      - name: net_paid_pmpm
+        description: "Net plan paid cost Per Member Per Month (total paid claims / enrolled member months)."
+        tests:
+          - not_null
+      - name: member_cost_share_ratio
+        description: "Member cost-sharing percentage (patient due / total allowed)."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0.0
+              max_value: 1.0
+      - name: median_adjudication_lag_days
+        description: "Median days elapsed from date of service to claim payment date."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+      - name: p90_adjudication_lag_days
+        description: "90th percentile days elapsed from date of service to claim payment date."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+    tests:
+      - refhealth_dbt_healthcare_checks.surrogate_key_grain:
+          grain_columns:
+            - plan_id
+            - service_month
+
