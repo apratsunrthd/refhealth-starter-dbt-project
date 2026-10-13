@@ -8,6 +8,7 @@
 - Built marts models: `dim_members` (active coverage calculation), `dim_providers`, `fct_claims` (adjudication lag in days and allowed amounts), and `fct_plan_monthly_metrics` (Medical Loss Ratio, Allowed/Net PMPM, Member Cost-Share Ratio, and Median/P90 claims adjudication turnaround lag).
 - Integrated `refhealth-dbt-healthcare-checks` v1.0.3 and `dbt_utils`, asserting 106/106 tests passing across surrogate grain, bitemporal dates, CMS NPI format, ICD-10 validity, CPT validity, midnight timestamp audits, referential integrity, and accepted range bounds (MLR between 0.50 and 1.50, lag >= 0).
 - Built synthetic FHIR Encounter-to-Claims Transformation Bridge (`raw_fhir_encounters.csv`, `stg_fhir_encounters.sql`, `int_encounter_claims_crosswalk.sql`) linking clinical care events to billing claim lines, auditing unbilled clinical care and procedure code alignment.
+- Tagged and published `v1.2.0` release on GitHub (`apratsunrthd/refhealth-starter-dbt-project`).
 - Configured GitHub Actions CI workflow in `.github/workflows/ci.yml`.
 - Authored all required documentation: `README.md`, `ARCHITECTURE.md`, `BRIEF.md`, `HANDOFF.md`, `TODO.md`, and `LICENSE`.
 
