@@ -35,6 +35,6 @@ It provides an end-to-end working implementation of the **Governed Data Foundati
 
 ## What's Next
 
-- Tag `v1.2.0` release on GitHub.
-- Add synthetic SCD Type 2 snapshot example demonstrating member plan migration over time.
-- Author LinkedIn thought leadership sequence linking repo and interactive claims float calculator.
+- Add an example dbt snapshot (`snapshots/snp_member_eligibility.sql`) demonstrating how to model SCD Type 2 changes in member benefit plans over time.
+- Add condition/diagnosis crosswalk model (`int_encounter_diagnosis_crosswalk.sql`) linking FHIR Condition resources to claims diagnosis codes.
+- Cross-link starter repo metrics in technical articles and playbooks on `refhealth.consulting`.
